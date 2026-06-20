@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#36422F" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<title>Settle — gut-friendly dinners</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ===========================================================
+     SETTLE — gut-friendly evening dinners
+     Everything you'd want to edit lives in the DATA block in the
+     <script> at the bottom (meals + shopping). Change it there.
+     =========================================================== */
+
+  :root{
+    --paper:#EEF1E8;
+    --card:#FBFBF7;
+    --ink:#23291F;
+    --muted:#5E6B57;
+    --forest:#36422F;
+    --sage:#7F9469;
+    --sage-soft:#E3E9D9;
+    --honey:#C98A3C;
+    --honey-soft:#F4E4CB;
+    --line:rgba(54,66,47,.12);
+    --line-strong:rgba(54,66,47,.22);
+    --shadow:0 1px 2px rgba(35,41,31,.05), 0 8px 24px -12px rgba(35,41,31,.18);
+    --radius:18px;
+    --tabbar:74px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  .app{
+    max-width:540px;
+    margin:0 auto;
+    min-height:100%;
+    padding-bottom:calc(var(--tabbar) + env(safe-area-inset-bottom));
+    position:relative;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    padding:calc(28px + env(safe-area-inset-top)) 22px 18px;
+    background:
+      radial-gradient(120% 80% at 90% 0%, rgba(127,148,105,.18), transparent 60%),
+      var(--paper);
+    position:sticky; top:0; z-index:5;
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand svg{flex:none;}
+  .wordmark{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:30px;
+    letter-spacing:-.01em;
+    color:var(--forest);
+    line-height:1;
+  }
+  .tagline{
+    margin-top:7px;
+    font-size:13.5px;
+    color:var(--muted);
+    font-weight:450;
+  }
+  .tagline b{color:var(--sage);font-weight:600;}
+
+  /* ---------- Views ---------- */
+  main{padding:20px 18px 8px;}
+  .view{display:none;animation:rise .32s cubic-bezier(.2,.7,.2,1);}
+  .view.active{display:block;}
+  @keyframes rise{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  .view-head{
+    display:flex;align-items:baseline;justify-content:space-between;
+    margin:2px 4px 16px;
+  }
+  .view-title{
+    font-family:'Fraunces',serif;font-weight:500;font-size:21px;color:var(--forest);
+  }
+  .view-sub{font-size:12.5px;color:var(--muted);font-weight:500;}
+
+  /* ---------- Day cards (Week) ---------- */
+  .day{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    margin-bottom:12px;
+    position:relative;overflow:hidden;
+    transition:border-color .15s ease;
+  }
+  .day-top{
+    display:block;width:100%;text-align:left;
+    background:none;border:none;font-family:inherit;color:inherit;
+    padding:16px 16px 14px;cursor:pointer;position:relative;
+    transition:transform .15s ease;
+  }
+  .day-top:active{transform:scale(.99);}
+  .day-top:focus-visible{outline:2px solid var(--sage);outline-offset:-3px;border-radius:var(--radius);}
+  .day-shop{
+    border-top:1px dashed var(--line-strong);
+    padding:12px 16px 14px;
+  }
+  .day-shop-h{
+    display:flex;align-items:center;gap:6px;
+    font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--sage);margin-bottom:7px;
+  }
+  .day-shop ul{list-style:none;}
+  .day-shop li{
+    display:flex;align-items:flex-start;gap:10px;
+    font-size:12.5px;color:var(--muted);padding:6px 0;line-height:1.35;cursor:pointer;
+  }
+  .day-shop li .mbox{
+    width:18px;height:18px;border-radius:6px;border:2px solid var(--line-strong);flex:none;
+    margin-top:1px;display:grid;place-items:center;transition:all .16s ease;
+  }
+  .day-shop li .mbox svg{opacity:0;transform:scale(.5);color:#fff;transition:all .16s ease;}
+  .day-shop li.done .mbox{background:var(--sage);border-color:var(--sage);}
+  .day-shop li.done .mbox svg{opacity:1;transform:scale(1);}
+  .day-shop li.done span{
+    text-decoration:line-through;text-decoration-color:var(--line-strong);color:var(--line-strong);
+  }
+  .day .dow{
+    display:flex;align-items:center;gap:8px;
+    font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--sage);margin-bottom:7px;
+  }
+  .day.tonight .dow{color:var(--honey);}
+  .pill-tonight{
+    background:var(--honey);color:#fff;font-size:9.5px;letter-spacing:.08em;
+    padding:2px 7px;border-radius:99px;font-weight:700;
+  }
+  .day .meal{
+    font-family:'Fraunces',serif;font-weight:500;font-size:19px;
+    color:var(--ink);line-height:1.18;letter-spacing:-.01em;
+    padding-right:30px;
+  }
+  .day .macros{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap;}
+  .tag{
+    font-size:11.5px;font-weight:600;padding:4px 9px;border-radius:8px;
+    background:var(--sage-soft);color:var(--forest);
+  }
+  .tag.protein{background:var(--honey-soft);color:#8a5a1d;}
+  .day .chev{
+    position:absolute;right:15px;top:50%;transform:translateY(-50%);
+    color:var(--line-strong);
+  }
+  .sprig{position:absolute;right:-14px;bottom:-14px;opacity:.06;pointer-events:none;}
+
+  /* ---------- Recipes ---------- */
+  .recipe{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;
+  }
+  .recipe summary{
+    list-style:none;cursor:pointer;padding:16px;display:flex;align-items:center;gap:12px;
+  }
+  .recipe summary::-webkit-details-marker{display:none;}
+  .r-name{
+    font-family:'Fraunces',serif;font-weight:500;font-size:17.5px;color:var(--ink);
+    flex:1;line-height:1.2;
+  }
+  .r-day{
+    font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--sage);
+  }
+  .recipe summary .plus{
+    width:24px;height:24px;border-radius:50%;background:var(--sage-soft);color:var(--forest);
+    display:grid;place-items:center;flex:none;font-size:16px;transition:transform .2s ease;
+  }
+  .recipe[open] summary .plus{transform:rotate(45deg);background:var(--honey);color:#fff;}
+  .r-body{padding:0 16px 18px;border-top:1px solid var(--line);}
+  .r-section{
+    font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--sage);margin:16px 0 9px;
+  }
+  .r-body ul{list-style:none;}
+  .r-body ul li{
+    font-size:14px;padding:6px 0 6px 20px;position:relative;color:var(--ink);
+    border-bottom:1px solid var(--line);
+  }
+  .r-body ul li:last-child{border-bottom:none;}
+  .r-body ul li::before{
+    content:"";position:absolute;left:3px;top:13px;width:6px;height:6px;border-radius:50%;
+    background:var(--sage);
+  }
+  .r-body ol{counter-reset:step;list-style:none;}
+  .r-body ol li{
+    font-size:14px;padding:9px 0 9px 34px;position:relative;color:var(--muted);
+    line-height:1.5;
+  }
+  .r-body ol li strong{color:var(--ink);font-weight:600;}
+  .r-body ol li::before{
+    counter-increment:step;content:counter(step);
+    position:absolute;left:0;top:8px;width:22px;height:22px;border-radius:7px;
+    background:var(--forest);color:#fff;font-size:12px;font-weight:700;
+    display:grid;place-items:center;font-family:'Inter';
+  }
+  .r-note{
+    margin-top:14px;background:var(--honey-soft);border-radius:12px;padding:11px 13px;
+    font-size:12.5px;color:#7a5018;line-height:1.45;
+  }
+
+  /* ---------- Shopping list ---------- */
+  .progress-wrap{margin:0 4px 18px;}
+  .progress-track{height:8px;background:var(--sage-soft);border-radius:99px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--honey);width:0;border-radius:99px;transition:width .35s ease;}
+  .cat{margin-bottom:20px;}
+  .cat h3{
+    font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--sage);margin:0 4px 9px;display:flex;align-items:center;gap:8px;
+  }
+  .cat h3 .ct{color:var(--muted);font-weight:600;letter-spacing:0;text-transform:none;font-size:11.5px;}
+  .item{
+    display:flex;align-items:center;gap:13px;background:var(--card);
+    border:1px solid var(--line);border-radius:13px;padding:13px 14px;margin-bottom:8px;
+    cursor:pointer;transition:background .15s ease;
+  }
+  .item:active{background:var(--sage-soft);}
+  .box{
+    width:22px;height:22px;border-radius:7px;border:2px solid var(--line-strong);flex:none;
+    display:grid;place-items:center;transition:all .18s ease;
+  }
+  .box svg{opacity:0;transform:scale(.5);transition:all .18s ease;color:#fff;}
+  .item.done .box{background:var(--sage);border-color:var(--sage);}
+  .item.done .box svg{opacity:1;transform:scale(1);}
+  .item .label{font-size:14.5px;color:var(--ink);transition:color .15s ease;}
+  .item .qty{font-size:12.5px;color:var(--muted);margin-left:auto;flex:none;}
+  .item.done .label{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line-strong);}
+  .reset{
+    display:block;margin:6px auto 24px;background:none;border:1px solid var(--line-strong);
+    color:var(--muted);font-size:12.5px;font-weight:600;padding:9px 18px;border-radius:99px;cursor:pointer;
+    font-family:inherit;
+  }
+  .reset:active{background:var(--sage-soft);}
+
+  .footnote{
+    text-align:center;font-size:11.5px;color:var(--muted);line-height:1.5;
+    padding:4px 24px 18px;
+  }
+
+  /* ---------- Bottom tab bar ---------- */
+  nav.tabs{
+    position:fixed;left:0;right:0;bottom:0;z-index:20;
+    max-width:540px;margin:0 auto;
+    background:rgba(251,251,247,.92);
+    backdrop-filter:saturate(1.4) blur(12px);
+    -webkit-backdrop-filter:saturate(1.4) blur(12px);
+    border-top:1px solid var(--line);
+    display:flex;
+    padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+  }
+  .tab{
+    flex:1;background:none;border:none;cursor:pointer;font-family:inherit;
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    padding:6px 0;color:var(--muted);transition:color .15s ease;
+  }
+  .tab svg{width:23px;height:23px;}
+  .tab span{font-size:11px;font-weight:600;letter-spacing:.01em;}
+  .tab.active{color:var(--forest);}
+  .tab.active svg{stroke:var(--honey);}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <svg width="26" height="30" viewBox="0 0 26 30" fill="none">
+        <path d="M13 28C13 28 4 22 4 13C4 8 8 4 13 4C18 4 22 8 22 13C22 22 13 28 13 28Z" stroke="#7F9469" stroke-width="1.6"/>
+        <path d="M13 27V8M13 14C11 12 8 11.5 8 11.5M13 18C15 16 18 16 18 16M13 12C11.5 10.5 11.5 7 11.5 7" stroke="#36422F" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span class="wordmark">Settle</span>
+    </div>
+    <p class="tagline">Gut-friendly dinners, <b>one a day</b> — built to clear before bed.</p>
+  </header>
+
+  <main>
+    <!-- WEEK -->
+    <section class="view active" id="view-week">
+      <div class="view-head">
+        <span class="view-title">This week</span>
+        <span class="view-sub">Tap a day for the recipe</span>
+      </div>
+      <div id="week-list"></div>
+      <p class="footnote">Each dinner lands around 36–42g protein and 350–480 kcal. Aim to finish 4+ hours before bed.</p>
+    </section>
+
+    <!-- RECIPES -->
+    <section class="view" id="view-recipes">
+      <div class="view-head">
+        <span class="view-title">Recipes</span>
+        <span class="view-sub">Low-FODMAP · low-fat</span>
+      </div>
+      <div id="recipe-list"></div>
+    </section>
+
+    <!-- SHOPPING -->
+    <section class="view" id="view-list">
+      <div class="view-head">
+        <span class="view-title">Shopping list</span>
+        <span class="view-sub" id="list-count">0 / 0</span>
+      </div>
+      <div class="progress-wrap"><div class="progress-track"><div class="progress-fill" id="progress"></div></div></div>
+      <div id="shop-list"></div>
+      <button class="reset" id="reset-btn">Clear all ticks</button>
+      <p class="footnote">One week, one serving per meal. Scale up if you're cooking for Jamie too. Pantry items you likely already have are grouped last.</p>
+    </section>
+  </main>
+
+  <nav class="tabs">
+    <button class="tab active" data-view="week">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+      <span>Week</span>
+    </button>
+    <button class="tab" data-view="recipes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16M4 4h11a4 4 0 0 1 0 8H4M18 13v8"/></svg>
+      <span>Recipes</span>
+    </button>
+    <button class="tab" data-view="list">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>
+      <span>List</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+/* ============================================================
+   DATA — edit freely. Each meal has macros + a recipe.
+   Order is Mon→Sun (index 0 = Monday).
+   ============================================================ */
+const MEALS = [
+  { day:"Monday", name:"De-FODMAP'd Chicken Salad", protein:40, kcal:450,
+    ingredients:[
+      "150g chicken breast, grilled & sliced","2 cups romaine lettuce, chopped",
+      "½ cucumber, sliced","1 small carrot, grated","8 cherry tomatoes, halved",
+      "½ cup cooked white rice (optional)","20g feta, crumbled",
+      "2 tbsp spring onion greens","1 tbsp olive oil","½ lemon, juiced",
+      "1 tsp Dijon mustard","1 tbsp balsamic vinegar","Salt & pepper"],
+    steps:[
+      "<strong>Grill the chicken</strong> — season and cook 5–6 min per side, rest, then slice.",
+      "<strong>Make the dressing</strong> — whisk olive oil, lemon, Dijon and balsamic with salt and pepper.",
+      "<strong>Prep the veg</strong> — chop romaine, slice cucumber, grate carrot, halve tomatoes.",
+      "<strong>Assemble</strong> — toss veg with dressing, add rice, top with chicken, feta and spring onion greens."],
+    note:"Drops the four big gas producers from the original — edamame, onion, barley and roasted starches." },
+
+  { day:"Tuesday", name:"Baked Fish, Potato & Greens", protein:38, kcal:400,
+    ingredients:[
+      "180g white fish (hammour, sea bass or cod)","200g baby potatoes, halved",
+      "100g green beans, trimmed","1 carrot, sliced","1 tbsp olive oil","½ lemon",
+      "1 tbsp fresh dill or parsley","½ tsp paprika","Salt & pepper"],
+    steps:[
+      "<strong>Roast potatoes</strong> — toss with half the oil, paprika, salt. Roast at 200°C for ~25 min.",
+      "<strong>Bake the fish</strong> — drizzle with oil, lemon and salt. Add to oven for the final 12–15 min.",
+      "<strong>Steam the greens</strong> — green beans and carrot, ~5 min until just tender.",
+      "<strong>Plate</strong> — scatter herbs and finish with a squeeze of lemon."],
+    note:"White fish empties quickly and plain potato beats sweet potato or pumpkin for overnight comfort." },
+
+  { day:"Wednesday", name:"Ginger Chicken Noodle Stir-Fry", protein:36, kcal:420,
+    ingredients:[
+      "150g chicken breast (or prawns), sliced","60g rice noodles, dry",
+      "1 cup bok choy, chopped","1 carrot, julienned","½ red capsicum, sliced",
+      "1 tsp fresh ginger, grated","2 tbsp spring onion greens","1.5 tbsp soy sauce",
+      "1 tsp sesame oil","1 tsp neutral oil","½ lime"],
+    steps:[
+      "<strong>Cook the noodles</strong> per the pack, drain and set aside.",
+      "<strong>Stir-fry the protein</strong> in neutral oil over high heat, 5–6 min, then remove.",
+      "<strong>Stir-fry the veg</strong> — bok choy, carrot, capsicum and ginger, 3–4 min.",
+      "<strong>Bring together</strong> — return protein, add noodles, soy and sesame oil; finish with spring onion and lime."],
+    note:"Ginger and spring onion greens stand in for the onion and garlic without the fructans." },
+
+  { day:"Thursday", name:"Grilled Chicken, Rice & Spinach", protein:42, kcal:430,
+    ingredients:[
+      "150g chicken breast","½ cup cooked white rice","2 cups spinach",
+      "1 tbsp garlic-infused oil","½ lemon, juiced","Salt & pepper"],
+    steps:[
+      "<strong>Grill the chicken</strong> — season, cook 5–6 min per side, rest and slice.",
+      "<strong>Wilt the spinach</strong> in garlic-infused oil, ~2 min, then squeeze over the lemon.",
+      "<strong>Serve</strong> chicken and spinach over the rice."],
+    note:"Garlic-infused oil gives the flavour without the FODMAPs — they aren't oil-soluble." },
+
+  { day:"Friday", name:"Salmon with Quinoa & Roasted Veg", protein:38, kcal:480,
+    ingredients:[
+      "150g salmon fillet","½ cup cooked quinoa","1 courgette, sliced",
+      "1 carrot, sliced","1 tbsp olive oil","½ lemon","½ tsp paprika","Salt & pepper"],
+    steps:[
+      "<strong>Roast the veg</strong> — toss courgette and carrot in half the oil, salt, paprika. 200°C for ~20 min.",
+      "<strong>Bake the salmon</strong> with oil, lemon and salt for the final 12–15 min.",
+      "<strong>Serve</strong> over the quinoa with a squeeze of lemon."],
+    note:"Salmon adds a little more fat — keep the rest of the day lighter to balance it." },
+
+  { day:"Saturday", name:"Lean Beef & Rice Bowl with Bok Choy", protein:40, kcal:450,
+    ingredients:[
+      "150g lean beef strips","½ cup cooked white rice","1 cup bok choy, chopped",
+      "1 carrot, julienned","1 tsp fresh ginger, grated","2 tbsp spring onion greens",
+      "1.5 tbsp soy sauce","1 tsp neutral oil","½ lime"],
+    steps:[
+      "<strong>Sear the beef</strong> in neutral oil over high heat, 3–4 min, then remove.",
+      "<strong>Stir-fry</strong> bok choy, carrot and ginger, ~3 min.",
+      "<strong>Combine</strong> — return beef, add soy, toss; serve over rice with spring onion and lime."],
+    note:"Lean cuts and a light hand with oil keep it emptying quickly." },
+
+  { day:"Sunday", name:"Herb Omelette, Spinach & Sourdough", protein:28, kcal:350,
+    ingredients:[
+      "3 eggs","1 cup spinach","6 cherry tomatoes, halved","15g feta (optional)",
+      "1 tsp olive oil","1 tbsp chives or parsley","1 slice sourdough","Salt & pepper"],
+    steps:[
+      "<strong>Whisk</strong> the eggs with salt and pepper.",
+      "<strong>Wilt</strong> spinach and tomatoes in the oil, ~1 min.",
+      "<strong>Cook</strong> — pour in eggs, cook gently, add feta and fold.",
+      "<strong>Serve</strong> with toasted sourdough and a scatter of herbs."],
+    note:"A lighter night — eggs are gentle and sourdough is easier on the gut than standard bread." },
+];
+
+/* Shopping list — grouped. {n: item, q: quantity} */
+const SHOPPING = [
+  { cat:"Proteins", items:[
+    {n:"Chicken breast", q:"450g"},
+    {n:"White fish fillet", q:"180g"},
+    {n:"Salmon fillet", q:"150g"},
+    {n:"Lean beef strips", q:"150g"},
+    {n:"Eggs", q:"6"},
+  ]},
+  { cat:"Produce", items:[
+    {n:"Romaine lettuce", q:"1 head"},
+    {n:"Cucumber", q:"1"},
+    {n:"Carrots", q:"5"},
+    {n:"Cherry tomatoes", q:"1 punnet"},
+    {n:"Baby potatoes", q:"300g"},
+    {n:"Green beans", q:"150g"},
+    {n:"Spinach", q:"1 large bag"},
+    {n:"Bok choy", q:"2 heads"},
+    {n:"Red capsicum", q:"1"},
+    {n:"Courgette", q:"1"},
+    {n:"Lemons", q:"4"},
+    {n:"Limes", q:"2"},
+    {n:"Fresh ginger", q:"1 knob"},
+    {n:"Spring onions", q:"1 bunch"},
+    {n:"Dill or parsley", q:"1 bunch"},
+  ]},
+  { cat:"Grains & bread", items:[
+    {n:"White rice", q:"small bag"},
+    {n:"Quinoa", q:"small bag"},
+    {n:"Rice noodles", q:"1 pack"},
+    {n:"Sourdough bread", q:"1 loaf"},
+  ]},
+  { cat:"Dairy", items:[
+    {n:"Feta", q:"1 small block"},
+  ]},
+  { cat:"Pantry & flavour", items:[
+    {n:"Olive oil", q:"check"},
+    {n:"Sesame oil", q:"check"},
+    {n:"Neutral oil", q:"check"},
+    {n:"Garlic-infused oil", q:"check"},
+    {n:"Soy sauce", q:"check"},
+    {n:"Dijon mustard", q:"check"},
+    {n:"Balsamic vinegar", q:"check"},
+    {n:"Paprika", q:"check"},
+  ]},
+];
+
+/* ============================================================
+   APP — no need to edit below here.
+   ============================================================ */
+let mem = {};
+const store = {
+  get(k){ try{ const v=localStorage.getItem(k); return v===null?null:JSON.parse(v);}catch(e){ return k in mem?mem[k]:null; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){ mem[k]=v; } }
+};
+const checks = store.get("settle.checks.v1") || {};
+const mealChecks = store.get("settle.mealChecks.v1") || {};
+
+const tick = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
+const chev = '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>';
+const sprig = '<svg class="sprig" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#36422F" stroke-width="1.2" stroke-linecap="round"><path d="M12 22V4M12 12C9 10 6 10 6 10M12 16C15 14 18 14 18 14M12 8C10 6 10 3 10 3M12 11C14 9 14 6 14 6"/></svg>';
+
+const leafMini = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 21V8M12 13C9.5 11 7 11 7 11M12 16C14.5 14 17 14 17 14M5 21c0-7 4-13 14-15-1 9-6 14-14 15z"/></svg>';
+
+const todayIdx = (new Date().getDay() + 6) % 7; // Mon=0 … Sun=6
+
+/* Week view */
+const weekList = document.getElementById('week-list');
+MEALS.forEach((m,i)=>{
+  const tonight = i===todayIdx;
+  const el = document.createElement('div');
+  el.className = 'day' + (tonight?' tonight':'');
+  el.innerHTML =
+    `<button class="day-top" aria-label="Open recipe for ${m.name}">`+
+      `<div class="dow">${m.day}${tonight?'<span class="pill-tonight">TONIGHT</span>':''}</div>`+
+      `<div class="meal">${m.name}</div>`+
+      `<div class="macros"><span class="tag protein">${m.protein}g protein</span><span class="tag">${m.kcal} kcal</span></div>`+
+      chev+
+    `</button>`+
+    `<div class="day-shop">`+
+      `<div class="day-shop-h">${leafMini} Shopping</div>`+
+      `<ul>${m.ingredients.map((x,j)=>`<li class="${mealChecks[i+'-'+j]?'done':''}" data-k="${i}-${j}"><span class="mbox">${tick}</span><span>${x}</span></li>`).join('')}</ul>`+
+    `</div>`+
+    sprig;
+  el.querySelector('.day-top').addEventListener('click', ()=>{ openRecipe(i); });
+  el.querySelectorAll('.day-shop li').forEach(li=>{
+    li.addEventListener('click', ()=>{
+      const k = li.dataset.k;
+      const now = !li.classList.contains('done');
+      li.classList.toggle('done', now);
+      mealChecks[k] = now; store.set('settle.mealChecks.v1', mealChecks);
+    });
+  });
+  weekList.appendChild(el);
+});
+
+/* Recipes view */
+const recipeList = document.getElementById('recipe-list');
+MEALS.forEach((m,i)=>{
+  const d = document.createElement('details');
+  d.className='recipe'; d.id='recipe-'+i;
+  d.innerHTML =
+    `<summary><div style="flex:1"><div class="r-day">${m.day}</div><div class="r-name">${m.name}</div></div><span class="plus">+</span></summary>`+
+    `<div class="r-body">`+
+      `<div class="r-section">Ingredients</div><ul>${m.ingredients.map(x=>`<li>${x}</li>`).join('')}</ul>`+
+      `<div class="r-section">Method</div><ol>${m.steps.map(x=>`<li>${x}</li>`).join('')}</ol>`+
+      (m.note?`<div class="r-note">${m.note}</div>`:'')+
+    `</div>`;
+  recipeList.appendChild(d);
+});
+
+function openRecipe(i){
+  switchView('recipes');
+  document.querySelectorAll('.recipe').forEach(r=>r.open=false);
+  const t = document.getElementById('recipe-'+i);
+  t.open = true;
+  setTimeout(()=>t.scrollIntoView({behavior:'smooth',block:'start'}),60);
+}
+
+/* Shopping view */
+const shopList = document.getElementById('shop-list');
+let total = 0;
+SHOPPING.forEach((group,gi)=>{
+  total += group.items.length;
+  const wrap = document.createElement('div'); wrap.className='cat';
+  wrap.innerHTML = `<h3>${group.cat} <span class="ct">· ${group.items.length}</span></h3>`;
+  group.items.forEach((it,ii)=>{
+    const key = gi+'-'+ii;
+    const done = !!checks[key];
+    const row = document.createElement('div');
+    row.className = 'item'+(done?' done':'');
+    row.innerHTML = `<div class="box">${tick}</div><span class="label">${it.n}</span><span class="qty">${it.q}</span>`;
+    row.addEventListener('click', ()=>{
+      const now = !row.classList.contains('done');
+      row.classList.toggle('done', now);
+      checks[key]=now; store.set('settle.checks.v1', checks); updateProgress();
+    });
+    wrap.appendChild(row);
+  });
+  shopList.appendChild(wrap);
+});
+
+function updateProgress(){
+  const done = Object.values(checks).filter(Boolean).length;
+  document.getElementById('progress').style.width = (total? (done/total*100):0)+'%';
+  document.getElementById('list-count').textContent = done+' / '+total;
+}
+updateProgress();
+
+document.getElementById('reset-btn').addEventListener('click', ()=>{
+  for(const k in checks) delete checks[k];
+  store.set('settle.checks.v1', checks);
+  document.querySelectorAll('.item.done').forEach(el=>el.classList.remove('done'));
+  updateProgress();
+});
+
+/* Tab nav */
+function switchView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.view===name));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>switchView(t.dataset.view));
+});
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
